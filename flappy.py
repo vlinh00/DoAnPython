@@ -10,7 +10,7 @@ def get_db_connection():
     conn = mysql.connector.connect(
         host='localhost',
         user='root',         # Tên người dùng MySQL của bạn
-        password='uit12345', # Mật khẩu MySQL của bạn
+        password='uit12345', # Mật khẩu MySQL của bạn 
         database='flappy_bird'
     )
     return conn
@@ -50,7 +50,7 @@ pygame.mixer.init()
 SCREEN_WIDHT = 400
 SCREEN_HEIGHT = 600 
 SPEED = 10
-GRAVITY = 1
+GRAVITY = 2
 GAME_SPEED = 15
 
 GROUND_WIDHT = 2 * SCREEN_WIDHT

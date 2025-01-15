@@ -107,7 +107,7 @@ class Bird(pygame.sprite.Sprite):
         if not self.is_upgraded:
             self.image = self.images[self.current_image]
 
-        self.image = self.images[self.current_image]
+        # self.image = self.images[self.current_image]
         self.speed += GRAVITY
         #UPDATE HEIGHT
         self.rect[1] += self.speed
@@ -152,7 +152,7 @@ class Pipe(pygame.sprite.Sprite):
     def __init__(self, inverted, xpos, ysize):
         pygame.sprite.Sprite.__init__(self)
 
-        self. image = pygame.image.load('assets/sprites/pipe-green.png').convert_alpha()
+        self. image = pygame.image.load('assets/sprites/pipe-red.png').convert_alpha()
         self.image = pygame.transform.scale(self.image, (PIPE_WIDHT, PIPE_HEIGHT))
 
 
@@ -189,6 +189,7 @@ class Pipe(pygame.sprite.Sprite):
                 bird.upgraded_pipes += 1
                 # Nếu đã vượt qua 3 cột kể từ lúc pro => downgrade
                 if bird.upgraded_pipes >= 2:
+                    can_penetrate = False
                     bird.downgrade()
 
         
@@ -287,14 +288,13 @@ score = 0
 
 # Biến “xuyên cột” (chỉ 1 lần sau khi ăn sâu)
 can_penetrate = False
-worm_group = pygame.sprite.Group()
+
 
 def create_worm_between_pipes(pipe_top, pipe_bottom):
     """Tạo sâu ở khoảng giữa 2 ống."""
-    if random.randint(1, 100) <= 100 and len(worm_group) < 2:  # 15% cơ hội xuất hiện vật phẩm
+    if random.randint(1, 100) <= 10 and len(worm_group) < 2:  # 15% cơ hội xuất hiện vật phẩm
         xpos = pipe_top.rect.centerx
         ypos = (pipe_top.rect.bottom + pipe_bottom.rect.top) // 2
-        print(f"tạo sâu {xpos}, {ypos}" )
         worm = Worm(xpos, ypos)
         worm_group.add(worm)
 
@@ -317,26 +317,8 @@ def update_worms():
                 worm_group.remove(worm)
                 bird.eat_worm()   # chim sang "pro"
                 score += 1        # +1 điểm khi ăn sâu
-    pygame.display.update()
+    # pygame.display.update()
 
-def check_collision():
-    """Kiểm tra va chạm và cho phép xuyên 1 lần nếu can_penetrate == True."""
-    global can_penetrate
-
-    # 1) va chạm ground => game over
-    if pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask):
-        return True
-
-    # 2) Kiểm tra va chạm cột
-    if pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask):
-        # Nếu đang có trạng thái xuyên => bỏ qua va chạm 1 lần
-        if can_penetrate:
-            can_penetrate = False  # dùng xong thì tắt
-            return False
-        else:
-            return True
-
-    return False
 
 # Vị trí và kích thước ô nhập
 username_rect = pygame.Rect(100, 175, 200, 40)
@@ -459,13 +441,13 @@ def settings_screen(username):
         else:
             level_text = "Hard"
         screen.blit(BACKGROUND, (0, 0))
-        draw_text(screen, "Settings", 50, SCREEN_WIDHT // 2, 50, WHITE)
+        draw_text(screen, "Settings", 50, SCREEN_WIDHT // 2, 50, BLACK)
         
         # Hiển thị điểm cao nhất
-        draw_text(screen, f"High Score: {high_score}", 30, SCREEN_WIDHT // 2, 150, WHITE)
+        draw_text(screen, f"High Score: {high_score}", 30, SCREEN_WIDHT // 2, 150, BLACK)
         
         # Hiển thị cấp độ hiện tại
-        draw_text(screen, f"Level: {level_text}", 30, SCREEN_WIDHT // 2, 250, WHITE)
+        draw_text(screen, f"Level: {level_text}", 30, SCREEN_WIDHT // 2, 250, BLACK )
 
         # Nút giảm cấp độ
         pygame.draw.rect(screen, BLUE, (100, 300, 50, 40))  # Nút "-"
@@ -549,16 +531,10 @@ def get_user_id(username):
     conn.close()
     return result[0] if result[0] else 0
 
-# Thêm hàm logout
-def logout():
-    print("User logged out")
-    # Chuyển hướng về màn hình đăng nhập hoặc thoát chương trình
-    # user = login_or_register_screen()
-    # if user:
-    #     start_game()
-
 # Hàm xử lý Game Over
 def game_over_screen(score):
+    global begin
+    global start
     while True:
         screen.fill((0, 0, 0))  # Nền đen
         screen.blit(BACKGROUND, (0, 0))
@@ -567,13 +543,26 @@ def game_over_screen(score):
         draw_text(screen, "Game Over", 50, SCREEN_WIDHT // 2, SCREEN_HEIGHT // 2 - 100, (255, 0, 0))
         draw_text(screen, f"Score: {score}", 40, SCREEN_WIDHT // 2, SCREEN_HEIGHT // 2 - 50, (255, 255, 255))
 
+
+        # Nút Settings
+        pygame.draw.rect(screen, (128, 128, 128), (150, 15, 100, 30))
+        draw_text(screen, "Settings", 28, 200, 30, WHITE)
+
+        # Nút Logout
+        pygame.draw.rect(screen, (255, 165, 0), (150, 60, 100, 30))  # Màu cam
+        draw_text(screen, "Logout", 28, 200, 75, WHITE)
+
+        # Nút Quit
+        pygame.draw.rect(screen, (255, 0, 0), (150, 105, 100, 30))
+        draw_text(screen, "Quit", 28, 200, 120, WHITE)     
+
         # Nút Play Again
-        pygame.draw.rect(screen, (0, 128, 255), (100, 350, 200, 50))
-        draw_text(screen, "Play Again", 30, 200, 375, WHITE)
+        pygame.draw.rect(screen, (0, 128, 255), (118, 350, 180, 40))
+        draw_text(screen, "Play Again", 30, 210, 370, WHITE)
 
         # Nút Exit
-        pygame.draw.rect(screen, (255, 0, 0), (100, 420, 200, 50))
-        draw_text(screen, "Exit", 30, 200, 445, WHITE)
+        # pygame.draw.rect(screen, (255, 0, 0), (100, 420, 200, 50))
+        # draw_text(screen, "Exit", 30, 200, 445, WHITE)
 
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -581,9 +570,17 @@ def game_over_screen(score):
                 return False
 
             if event.type == MOUSEBUTTONDOWN:
-                if 100 <= event.pos[0] <= 300 and 350 <= event.pos[1] <= 400:  # Nút Play Again
+                if 118 <= event.pos[0] <= 298 and 350 <= event.pos[1] <= 390:  # Nút Play Again
                     return True
-                elif 100 <= event.pos[0] <= 300 and 420 <= event.pos[1] <= 470:  # Nút Exit
+                elif 150 <= event.pos[0] <= 250 and 15 <= event.pos[1] <= 45: # Nút Settings
+                    selected_level = settings_screen(user)
+                    if selected_level:
+                        update_level(user, selected_level)
+                elif 150 <= event.pos[0] <= 250 and 60 <= event.pos[1] <= 90:  # Nút Logout
+                    # begin = False
+                    # start = False
+                    return False
+                elif 150 <= event.pos[0] <= 250 and 105 <= event.pos[1] <= 135:  # Nút Quit
                     pygame.quit()
                     return False
         pygame.display.update()
@@ -595,11 +592,13 @@ pygame.display.set_caption('Flappy Bird')
 BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
 BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDHT, SCREEN_HEIGHT))
 BEGIN_IMAGE = pygame.image.load('assets/sprites/message.png').convert_alpha()
+GAMEOVER = pygame.image.load('assets/sprites/gameover.png')
 
 bird_group = pygame.sprite.Group()
 bird = Bird()
 bird_group.add(bird)
 
+worm_group = pygame.sprite.Group()
 powerup_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 # Nhóm sâu (vật phẩm)
@@ -620,219 +619,224 @@ for i in range (2):
 
 FPS = 15
 fpsClock = pygame.time.Clock()
+begin = True
+start = False
+selected_level = 1
 # Chạy giao diện đăng nhập/đăng ký trước khi vào game
 if __name__ == '__main__':
-    user = login_or_register_screen()
-    if user:
-        print("Game starts...")
-        # Bắt đầu game
-        # clock = pygame.time.Clock()
-        num_bullet = 0
-        begin = True
-        while begin:
-            score = 0
-            fpsClock.tick(FPS)
+    while True:
+        user = login_or_register_screen()
+        if user:
+            bird = Bird()
+            bird_group = pygame.sprite.Group()
+            bird_group.add(bird)
+
+            pipe_group = pygame.sprite.Group()
+            for i in range(2):
+                pipes = get_random_pipes(SCREEN_WIDHT * i + 800)
+                pipe_group.add(pipes[0])
+                pipe_group.add(pipes[1])
+            # Bắt đầu game
+            num_bullet = 0
+            begin = True
+            start = False
+            while begin:
+                score = 0
+                fpsClock.tick(FPS)
 
 
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE or event.key == K_UP:
+                for event in pygame.event.get():
+                    if event.type == QUIT:
+                        pygame.quit()
+                    if event.type == KEYDOWN:
+                        if event.key == K_SPACE or event.key == K_UP:
+                            bird.bump()
+                            pygame.mixer.music.load(wing)
+                            pygame.mixer.music.play()
+                            begin = False
+                            start = True
+
+                screen.blit(BACKGROUND, (0, 0))
+                screen.blit(BEGIN_IMAGE, (120, 150))
+
+                # Nút Settings
+                pygame.draw.rect(screen, (128, 128, 128), (150, 15, 100, 30))
+                draw_text(screen, "Settings", 28, 200, 30, WHITE)
+
+                # Nút Logout
+                pygame.draw.rect(screen, (255, 165, 0), (150, 60, 100, 30))  # Màu cam
+                draw_text(screen, "Logout", 28, 200, 75, WHITE)
+
+                # Nút Quit
+                pygame.draw.rect(screen, (255, 0, 0), (150, 105, 100, 30))
+                draw_text(screen, "Quit", 28, 200, 120, WHITE)
+                
+                # Nút Play
+                pygame.draw.rect(screen, (0, 128, 255), (150, 210, 100, 30))
+                draw_text(screen, "Play", 28, 200, 225, WHITE)
+
+            
+                pygame.display.flip()
+                
+                if event.type == MOUSEBUTTONDOWN:
+                    if 150 <= event.pos[0] <= 250 and 210 <= event.pos[1] <= 240:  # Nút Play
                         bird.bump()
                         pygame.mixer.music.load(wing)
                         pygame.mixer.music.play()
                         begin = False
+                        start = True
+                    elif 150 <= event.pos[0] <= 250 and 15 <= event.pos[1] <= 45: # Nút Settings
+                        selected_level = settings_screen(user)
+                        if selected_level:
+                            update_level(user, selected_level)
+                        # selected_level = settings_screen()
+                        # print(f"Selected Level: {selected_level}")
+                    elif 150 <= event.pos[0] <= 250 and 60 <= event.pos[1] <= 90:  # Nút Logout
+                        begin = False
+                        start = False
+                    elif 150 <= event.pos[0] <= 250 and 105 <= event.pos[1] <= 135:  # Nút Quit
+                        pygame.quit()
+                
 
-            screen.blit(BACKGROUND, (0, 0))
-            screen.blit(BEGIN_IMAGE, (120, 150))
+                if is_off_screen(ground_group.sprites()[0]):
+                    ground_group.remove(ground_group.sprites()[0])
 
-            # Nút Settings
-            pygame.draw.rect(screen, (128, 128, 128), (150, 15, 100, 30))
-            draw_text(screen, "Settings", 28, 200, 30, WHITE)
+                    new_ground = Ground(GROUND_WIDHT - 20)
+                    ground_group.add(new_ground)
 
-            # Nút Logout
-            pygame.draw.rect(screen, (255, 165, 0), (150, 60, 100, 30))  # Màu cam
-            draw_text(screen, "Logout", 28, 200, 75, WHITE)
 
-            # Nút Quit
-            pygame.draw.rect(screen, (255, 0, 0), (150, 105, 100, 30))
-            draw_text(screen, "Quit", 28, 200, 120, WHITE)
+                bird.begin()
+                ground_group.update()
+
+                bird_group.draw(screen)
+                ground_group.draw(screen)
+
+                pygame.display.update()
+
             
-            # Nút Play
-            pygame.draw.rect(screen, (0, 128, 255), (150, 210, 100, 30))
-            draw_text(screen, "Play", 28, 200, 225, WHITE)
+            while start:
+                selected_level = get_level(user)
+                if(selected_level == 1):
+                    SPEED = 15
+                    GRAVITY = 5
+                    GAME_SPEED = 15
+                elif(selected_level == 2):
+                    SPEED = 18
+                    GRAVITY = 8
+                    GAME_SPEED = 20
+                else:
+                    SPEED = 21
+                    GRAVITY = 10
+                    GAME_SPEED = 25
+                
+                fpsClock.tick(FPS)
 
+                for event in pygame.event.get():
+                    if event.type == QUIT:
+                        pygame.quit()
+                    if event.type == KEYDOWN:
+                        if event.key == K_SPACE or event.key == K_UP:
+                            bird.bump()
+                            pygame.mixer.music.load(wing)
+                            pygame.mixer.music.play()
+                            spawn_powerup()
+
+                        if event.key == K_b and bird.has_bullets:  # Nhấn B để bắn đạn
+                            bullet = bird.shoot_bullet()
+                            if num_bullet > 0: num_bullet-=1
+                            if num_bullet <= 0: bird.has_bullets = False
+                            if bullet: 
+                                bullet_group.add(bullet)
+                            # bullet = Bullet(bird.rect.right, bird.rect.centery)  # Tọa độ xuất phát của đạn
+                            # bullet_group.add(bullet)     
+
+                powerup_group.update()
+                bullet_group.update()
+
+                # Kiểm tra va chạm với vật phẩm
+                if pygame.sprite.spritecollideany(bird, powerup_group):
+                    powerup_group.empty()  # Xóa vật phẩm sau khi ăn
+                    bird.has_bullets = True
+                    num_bullet += 5
+
+
+                # Kiểm tra va chạm đạn với ống 
+                for bullet in bullet_group:
+                    for pipe in pipe_group:
+                        if bullet.rect.colliderect(pipe.rect):
+                            bullet.kill()
+                            pipe.kill()                             
+
+                screen.blit(BACKGROUND, (0, 0))
+
+                # Cập nhật, tịnh tiến ground
+                if is_off_screen(ground_group.sprites()[0]):
+                    ground_group.remove(ground_group.sprites()[0])
+
+                    new_ground = Ground(GROUND_WIDHT - 20)
+                    ground_group.add(new_ground) 
+
+                # Cập nhật, tịnh tiến pipe
+                if is_off_screen(pipe_group.sprites()[0]):
+                    if len(pipe_group) >= 0 and len(pipe_group)%2 == 1:  # Kiểm tra xem nhóm có phần tử
+                        pipe_group.remove(pipe_group.sprites()[0])
+                    elif len(pipe_group) >= 0 and len(pipe_group)%2 == 0:
+                        pipe_group.remove(pipe_group.sprites()[0])
+                        pipe_group.remove(pipe_group.sprites()[0])
+
+                    pipes = get_random_pipes(SCREEN_WIDHT * 2)
+
+                    pipe_group.add(pipes[0])
+                    pipe_group.add(pipes[1])
+
+                    # Thả sâu giữa 2 ống mới
+                    create_worm_between_pipes(pipes[0], pipes[1])
+                
             
+                bird_group.update()
+                ground_group.update()
+                pipe_group.update()
+                update_worms()  # ăn sâu trước khi check_collision
 
-  
-            pygame.display.flip()
+                
+                bird_group.draw(screen)
+                pipe_group.draw(screen)
+                ground_group.draw(screen)
 
-            
-            # Nút "Cài đặt"
-            # pygame.draw.rect(screen, (0, 128, 255), (100, 70, 200, 50))
-            # draw_text(screen, "Settings", 30, SCREEN_WIDHT // 2, 95, WHITE)
-            
-            if event.type == MOUSEBUTTONDOWN:
-                if 150 <= event.pos[0] <= 250 and 210 <= event.pos[1] <= 240:  # Nút Play
-                    bird.bump()
-                    pygame.mixer.music.load(wing)
-                    pygame.mixer.music.play()
-                    begin = False
-                elif 150 <= event.pos[0] <= 250 and 15 <= event.pos[1] <= 45: # Nút Settings
-                    selected_level = settings_screen(user)
-                    if selected_level:
-                        update_level(user, selected_level)
-                    # selected_level = settings_screen()
-                    # print(f"Selected Level: {selected_level}")
-                elif 150 <= event.pos[0] <= 250 and 60 <= event.pos[1] <= 90:  # Nút Logout
-                    logout()
-                    begin = False
-                elif 150 <= event.pos[0] <= 250 and 105 <= event.pos[1] <= 135:  # Nút Quit
-                    pygame.quit()
-            
+                worm_group.draw(screen)
+                powerup_group.draw(screen)
+                bullet_group.draw(screen)
 
-            if is_off_screen(ground_group.sprites()[0]):
-                ground_group.remove(ground_group.sprites()[0])
+                draw_text(screen, user, 30, SCREEN_WIDHT // 10, 20, CORAL)
+                # Tải hình viên đạn
+                bullet_image = pygame.image.load('assets/sprites/bullet.png')
 
-                new_ground = Ground(GROUND_WIDHT - 20)
-                ground_group.add(new_ground)
+                # Lấy kích thước viên đạn (nếu cần căn chỉnh) 
+                bullet_image = pygame.transform.scale(bullet_image, (16, 16))
 
+                # Hiển thị viên đạn ngay bên dưới tên người dùng
+                # Vị trí x = SCREEN_WIDHT // 10 (trùng với tên người dùng), y = 20 + kích thước font + khoảng cách
+                screen.blit(bullet_image, (SCREEN_WIDHT // 18, 20 + 10))
+                draw_text(screen, str(num_bullet), 30, SCREEN_WIDHT // 8, 20 + 20, CORAL)
 
-            bird.begin()
-            ground_group.update()
+                font = pygame.font.Font(None, 36)
+                score_text = font.render(f"Score: {score}", True, WHITE)
+                screen.blit(score_text, (SCREEN_WIDHT // 18, 20 + 30))
 
-            bird_group.draw(screen)
-            ground_group.draw(screen)
+                pygame.display.update()
 
-            pygame.display.update()
-
-        while True:
-
-            fpsClock.tick(FPS)
-
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                if event.type == KEYDOWN:
-                    if event.key == K_SPACE or event.key == K_UP:
-                        bird.bump()
-                        pygame.mixer.music.load(wing)
-                        pygame.mixer.music.play()
-                        spawn_powerup()
-
-                    if event.key == K_b and bird.has_bullets:  # Nhấn B để bắn đạn
-                        bullet = bird.shoot_bullet()
-                        if num_bullet > 0: num_bullet-=1
-                        if num_bullet <= 0: bird.has_bullets = False
-                        if bullet: 
-                            bullet_group.add(bullet)
-                        # bullet = Bullet(bird.rect.right, bird.rect.centery)  # Tọa độ xuất phát của đạn
-                        # bullet_group.add(bullet)     
-
-            powerup_group.update()
-            bullet_group.update()
-
-            # Kiểm tra va chạm với vật phẩm
-            if pygame.sprite.spritecollideany(bird, powerup_group):
-                powerup_group.empty()  # Xóa vật phẩm sau khi ăn
-                bird.has_bullets = True
-                num_bullet += 5
-
-
-            # Kiểm tra va chạm đạn với ống 
-            for bullet in bullet_group:
-                for pipe in pipe_group:
-                    if bullet.rect.colliderect(pipe.rect):
-                        bullet.kill()
-                        pipe.kill()                             
-
-            screen.blit(BACKGROUND, (0, 0))
-
-            # Cập nhật, tịnh tiến ground
-            if is_off_screen(ground_group.sprites()[0]):
-                ground_group.remove(ground_group.sprites()[0])
-
-                new_ground = Ground(GROUND_WIDHT - 20)
-                ground_group.add(new_ground) 
-
-            # Cập nhật, tịnh tiến pipe
-            if is_off_screen(pipe_group.sprites()[0]):
-                if len(pipe_group) >= 0 and len(pipe_group)%2 == 1:  # Kiểm tra xem nhóm có phần tử
-                    pipe_group.remove(pipe_group.sprites()[0])
-                elif len(pipe_group) >= 0 and len(pipe_group)%2 == 0:
-                    pipe_group.remove(pipe_group.sprites()[0])
-                    pipe_group.remove(pipe_group.sprites()[0])
-
-                pipes = get_random_pipes(SCREEN_WIDHT * 2)
-
-                pipe_group.add(pipes[0])
-                pipe_group.add(pipes[1])
-
-                # Thả sâu giữa 2 ống mới
-                create_worm_between_pipes(pipes[0], pipes[1])
-            
-          
-            bird_group.update()
-            ground_group.update()
-            pipe_group.update()
-            update_worms()  # ăn sâu trước khi check_collision
-
-            # Kiểm tra va chạm
-            # if check_collision():
-            #     pygame.mixer.music.load(hit)
-            #     pygame.mixer.music.play()
-            #     time.sleep(1)
-
-            #     # Hiển thị GAME OVER
-            #     font = pygame.font.Font(None, 72)
-            #     game_over_text = font.render("GAME OVER", True, (255, 0, 0))
-            #     screen.blit(game_over_text, 
-            #                 (SCREEN_WIDHT // 2 - game_over_text.get_width() // 2, 
-            #                 SCREEN_HEIGHT // 2 - game_over_text.get_height() // 2))
-            #     pygame.display.update()
-            #     time.sleep(3)
-            #     break
-            
-
-            bird_group.draw(screen)
-            pipe_group.draw(screen)
-            ground_group.draw(screen)
-
-            worm_group.draw(screen)
-            powerup_group.draw(screen)
-            bullet_group.draw(screen)
-
-            draw_text(screen, user, 30, SCREEN_WIDHT // 10, 20, CORAL)
-            # Tải hình viên đạn
-            bullet_image = pygame.image.load('assets/sprites/bullet.png')
-
-            # Lấy kích thước viên đạn (nếu cần căn chỉnh) 
-            bullet_image = pygame.transform.scale(bullet_image, (16, 16))
-
-            # Hiển thị viên đạn ngay bên dưới tên người dùng
-            # Vị trí x = SCREEN_WIDHT // 10 (trùng với tên người dùng), y = 20 + kích thước font + khoảng cách
-            screen.blit(bullet_image, (SCREEN_WIDHT // 18, 20 + 10))
-            draw_text(screen, str(num_bullet), 30, SCREEN_WIDHT // 8, 20 + 20, CORAL)
-
-            font = pygame.font.Font(None, 36)
-            score_text = font.render(f"Score: {score}", True, WHITE)
-            screen.blit(score_text, (SCREEN_WIDHT // 18, 20 + 30))
-
-            pygame.display.update()
-
-            # Kiểm tra va chạm
-            if can_penetrate == False or bird.is_upgraded == False:
-                if check_collision():
-                # if pygame.sprite.spritecollideany(bird, ground_group) or pygame.sprite.spritecollideany(bird, pipe_group):
+                # Kiểm tra va chạm
+                # if can_penetrate == False or bird.is_upgraded == False:
+                #     if check_collision():
+                if pygame.sprite.spritecollideany(bird, ground_group) or (pygame.sprite.spritecollideany(bird, pipe_group) and (can_penetrate == False or bird.is_upgraded == False)):
                     pygame.mixer.music.load(hit)
                     pygame.mixer.music.play()
-                    time.sleep(3)
+
                     highscore = get_high_score(user)
                     if score > highscore:
                         update_highscore(user, score)
                     if not game_over_screen(score):  # Hiển thị màn hình Game Over
-                        break  # Thoát game
+                        start = False
                     else:
                         # Khởi động lại game
                         bird = Bird()

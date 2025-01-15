@@ -627,15 +627,13 @@ if __name__ == '__main__':
     while True:
         user = login_or_register_screen()
         if user:
-            bird = Bird()
-            bird_group = pygame.sprite.Group()
-            bird_group.add(bird)
+            # bird = Bird()
+            # bird_group.add(bird)
 
-            pipe_group = pygame.sprite.Group()
-            for i in range(2):
-                pipes = get_random_pipes(SCREEN_WIDHT * i + 800)
-                pipe_group.add(pipes[0])
-                pipe_group.add(pipes[1])
+            # for i in range (2):
+            #     pipes = get_random_pipes(SCREEN_WIDHT * i + 800)
+            #     pipe_group.add(pipes[0])
+            #     pipe_group.add(pipes[1])
             # Bắt đầu game
             num_bullet = 0
             begin = True
@@ -763,7 +761,7 @@ if __name__ == '__main__':
                 # Kiểm tra va chạm đạn với ống 
                 for bullet in bullet_group:
                     for pipe in pipe_group:
-                        if bullet.rect.colliderect(pipe.rect):
+                        if bullet.rect.colliderect(pipe.rect) and not is_off_screen(pipe) and not is_off_screen(bullet):
                             bullet.kill()
                             pipe.kill()                             
 
@@ -839,6 +837,16 @@ if __name__ == '__main__':
                     if score > highscore:
                         update_highscore(user, score)
                     if not game_over_screen(score):  # Hiển thị màn hình Game Over
+                        bird = Bird()
+                        bird_group = pygame.sprite.Group()
+                        bird_group.add(bird)
+                        begin = True
+
+                        pipe_group = pygame.sprite.Group()
+                        for i in range(2):
+                            pipes = get_random_pipes(SCREEN_WIDHT * i + 800)
+                            pipe_group.add(pipes[0])
+                            pipe_group.add(pipes[1])
                         start = False
                     else:
                         # Khởi động lại game

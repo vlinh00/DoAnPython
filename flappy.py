@@ -819,6 +819,9 @@ if __name__ == '__main__':
                 screen.blit(bullet_image, (SCREEN_WIDHT // 18, 20 + 10))
                 draw_text(screen, str(num_bullet), 30, SCREEN_WIDHT // 8, 20 + 20, CORAL)
 
+                if num_bullet > 0:
+                    draw_text(screen, "(press B)", 30, (SCREEN_WIDHT // 4) + 4, 20 + 20, CORAL)
+
                 font = pygame.font.Font(None, 36)
                 score_text = font.render(f"Score: {score}", True, WHITE)
                 screen.blit(score_text, (SCREEN_WIDHT // 18, 20 + 30))
